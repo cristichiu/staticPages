@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Tracker v1.0</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Configurarea fontului */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7fafc; /* light gray/blue background */
+        }
+        /* Stiluri custom pentru a da un aspect "serios dar amuzant" și vibrant */
+        .aura-card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            background-color: #ffffff;
+            border-radius: 1rem;
+            border: 2px solid #5b21b6; /* deep violet border */
+        }
+        .aura-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        /* Stiluri Butoane - Ajustate pentru a fi mai vizibile (Green/Red Bold) */
+        .btn-aura {
+            transition: background-color 0.15s, transform 0.1s;
+            /* Adaugă bordură albă pentru a le scoate în evidență */
+            @apply rounded-xl p-2 font-extrabold shadow-md hover:shadow-lg active:translate-y-0.5 text-lg border-2 border-white; 
+        }
+        .btn-positive {
+            /* Verde mai intens */
+            @apply bg-green-600 text-white hover:bg-green-700;
+        }
+        .btn-negative {
+            /* Roșu mai intens */
+            @apply bg-red-600 text-white hover:bg-red-700;
+        }
+        .btn-primary {
+            @apply bg-violet-600 text-white hover:bg-violet-700;
+        }
+        .history-entry.merged {
+            @apply bg-yellow-100 border-yellow-500 border-l-4;
+        }
+        /* Stil îmbunătățit pentru selecția de elemente (FUNDAL GRI) */
+        .history-entry.selected {
+            @apply ring-4 ring-blue-300 bg-gray-200 border-gray-400 border;
+        }
+        /* Custom scrollbar for better look */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #a78bfa;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #e5e7eb;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="text-center mb-10">
+        <h1 class="text-5xl font-extrabold text-violet-700 tracking-tight">AURA TRACKER ⚡️</h1>
+        <p class="text-lg text-gray-500 mt-2">Urmărește punctele de aură ale prietenilor tăi (serios dar amuzant).</p>
+    </header>
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Search Bar (Afișat doar pe pagina principală) -->
+        <div id="search-bar-container" class="mb-8 p-4 bg-white rounded-xl shadow-lg flex items-center space-x-3">
+            <i data-lucide="search" class="text-gray-400 w-6 h-6"></i>
+            <input type="text" id="search-input" placeholder="Caută prieten după nume..." class="flex-grow p-2 text-lg focus:outline-none" oninput="app.filterProfiles(this.value)">
+        </div>
+
+        <!-- Profiles Container (Pagina Principală) -->
+        <div id="profiles-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Profile Cards will be injected here -->
+        </div>
+
+        <!-- Single Profile Detail Container (Pagina de Detaliu) -->
+        <div id="profile-detail-container" class="hidden">
+            <!-- Detail view will be injected here -->
+        </div>
+
+        <!-- Notification/Message Box -->
+        <div id="message-box" class="fixed top-5 right-5 z-50 p-4 rounded-lg shadow-xl text-white transition-opacity duration-300 opacity-0 hidden"></div>
+    </div>
+
+    <!-- Script Application Logic -->
+    <script type="module">
+        // Importă iconițele Lucide
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        /**
+         * Clasa StorageAdapter
+         * Gestionează persistența datelor.
+         */
+        class StorageAdapter {
+            constructor(storageKey = 'aura_tracker_data') {
+                this.storageKey = storageKey;
+                console.log("StorageAdapter: Folosind LocalStorage ca sursă de date.");
+            }
+
+            async loadData() {
+                const data = localStorage.getItem(this.storageKey);
+                if (data) {
+                    try {
+                        return JSON.parse(data);
+                    } catch (e) {
+                        console.error("Eroare la parsarea datelor din LocalStorage:", e);
+                        return [];
+                    }
+                }
+                return this.getInitialData();
+            }
+
+            async saveData(profiles) {
+                localStorage.setItem(this.storageKey, JSON.stringify(profiles));
+                return true;
+            }
+
+            getInitialData() {
+                return [
+                    { id: 'p1', name: 'Cristi', totalAura: 0, bonusPercentage: 0, history: [] },
+                    { id: 'p2', name: 'Vasea', totalAura: 0, bonusPercentage: 0, history: [] },
+                    { id: 'p3', name: 'Vlad', totalAura: 0, bonusPercentage: 0, history: [] },
+                    { id: 'p4', name: 'David', totalAura: 0, bonusPercentage: 0, history: [] },
+                ];
+            }
+        }
+
+        /**
+         * Clasa AuraCalculator
+         * Gestionează logica de calcul a punctelor de aură.
+         */
+        class AuraCalculator {
+            calculateAuraChange(baseValue, bonusPercentage) {
+                const factor = 1 + (bonusPercentage / 100);
+                // Rotunjire la cel mai apropiat număr întreg
+                const finalValue = Math.round(baseValue * factor);
+                return finalValue;
+            }
+        }
+
+        /**
+         * Clasa HistoryManager
+         * Gestionează lista de tranzacții pentru un singur profil.
+         */
+        class HistoryManager {
+            constructor() {
+                this.lastHistoryId = 0;
+            }
+
+            addEntry(profile, baseValue, finalValue, description = '') {
+                // Asigură-te că id-urile sunt unice și crescătoare
+                const currentMaxId = profile.history.reduce((max, entry) => Math.max(max, entry.id), 0);
+                this.lastHistoryId = Math.max(this.lastHistoryId, currentMaxId);
+
+                const newEntry = {
+                    id: ++this.lastHistoryId,
+                    baseValue: baseValue,
+                    value: finalValue,
+                    description: description,
+                    timestamp: Date.now(),
+                    merged: false
+                };
+                profile.history.unshift(newEntry);
+                
+                // Nu mai limităm istoricul, îl lăsăm să crească pe pagina de detaliu
+                return profile;
+            }
+
+            mergeEntries(profile, entryIds) {
+                if (entryIds.length < 2) return profile;
+
+                const sortedIds = entryIds.sort((a, b) => b.timestamp - a.timestamp); // Sortare după timestamp
+                const entriesToMerge = profile.history.filter(e => entryIds.includes(e.id));
+                
+                const totalValue = entriesToMerge.reduce((sum, e) => sum + e.value, 0);
+                const firstEntry = entriesToMerge.reduce((oldest, current) => oldest.timestamp < current.timestamp ? oldest : current);
+                const lastEntry = entriesToMerge.reduce((newest, current) => newest.timestamp > current.timestamp ? newest : current);
+
+
+                const mergedEntry = {
+                    id: lastEntry.id, 
+                    baseValue: entriesToMerge.reduce((sum, e) => sum + e.baseValue, 0),
+                    value: totalValue,
+                    description: `Grupare (${entriesToMerge.length} acțiuni, de la ${new Date(firstEntry.timestamp).toLocaleTimeString()} la ${new Date(lastEntry.timestamp).toLocaleTimeString()})`,
+                    timestamp: lastEntry.timestamp, // Folosim timestamp-ul celei mai noi intrări pentru poziționare
+                    merged: true
+                };
+
+                let newHistory = profile.history.filter(e => !entryIds.includes(e.id));
+
+                newHistory.push(mergedEntry);
+                
+                // Sortăm totul din nou cronologic invers, pentru siguranță
+                newHistory.sort((a, b) => b.timestamp - a.timestamp);
+
+                profile.history = newHistory;
+                return profile;
+            }
+        }
+
+        /**
+         * Clasa principală ProfileManager
+         * Gestionează starea globală și logica de vizualizare.
+         */
+        class ProfileManager {
+            constructor(storage, calculator) {
+                this.storage = storage;
+                this.calculator = calculator;
+                this.historyManager = new HistoryManager();
+                this.profiles = [];
+                this.isAuthReady = false;
+                this.currentProfileId = null; // Starea pentru "routing"
+                
+                // Containerii DOM
+                this.mainContainer = document.getElementById('profiles-container');
+                this.detailContainer = document.getElementById('profile-detail-container');
+                this.searchBarContainer = document.getElementById('search-bar-container');
+            }
+
+            async init() {
+                try {
+                    this.profiles = await this.storage.loadData();
+                    this.isAuthReady = true;
+                    this.showProfileList(); // Începe cu lista de profiluri
+                } catch (error) {
+                    console.error("Eroare la inițializarea ProfileManager:", error);
+                    this.isAuthReady = true;
+                    this.showProfileList();
+                }
+            }
+
+            async save() {
+                await this.storage.saveData(this.profiles);
+            }
+
+            getProfile(id) {
+                return this.profiles.find(p => p.id === id);
+            }
+            
+            // ############### Logică de Navigare (Routing) ###############
+            
+            showProfileList() {
+                this.currentProfileId = null;
+                this.searchBarContainer.classList.remove('hidden');
+                this.mainContainer.classList.remove('hidden');
+                this.detailContainer.classList.add('hidden');
+                // Re-renderează lista cu filtrele aplicate (dacă există)
+                const searchTerm = document.getElementById('search-input')?.value || '';
+                this.filterProfiles(searchTerm);
+            }
+
+            showProfileDetail(profileId) {
+                this.currentProfileId = profileId;
+                this.searchBarContainer.classList.add('hidden');
+                this.mainContainer.classList.add('hidden');
+                this.detailContainer.classList.remove('hidden');
+                this.renderProfileDetail(profileId);
+            }
+            
+            // ############### Logică de Acțiune ###############
+
+            async updateAura(profileId, baseValue, description = '') {
+                const profile = this.getProfile(profileId);
+                if (!profile) return this.showMessage('Profilul nu a fost găsit!', 'error');
+
+                const finalValue = this.calculator.calculateAuraChange(baseValue, profile.bonusPercentage);
+                profile.totalAura += finalValue;
+                this.historyManager.addEntry(profile, baseValue, finalValue, description);
+
+                await this.save();
+                
+                if (this.currentProfileId === profileId) {
+                    this.renderProfileDetail(profileId);
+                } else {
+                    this.renderProfiles(this.profiles); // Re-render pe pagina principală
+                }
+                
+                this.showMessage(`Aura lui ${profile.name} a fost actualizată: ${baseValue > 0 ? '+' : ''}${baseValue} Base → ${finalValue > 0 ? '+' : ''}${finalValue} Final!`, 'success');
+            }
+            
+            async updateBonus(profileId, newBonus) {
+                const profile = this.getProfile(profileId);
+                if (!profile) return this.showMessage('Profilul nu a fost găsit!', 'error');
+                
+                const bonus = parseFloat(newBonus);
+                if (isNaN(bonus)) return this.showMessage('Bonusul trebuie să fie o valoare numerică!', 'warning');
+                
+                profile.bonusPercentage = bonus;
+                await this.save();
+                this.renderProfileDetail(profileId);
+                this.showMessage(`Bonusul lui ${profile.name} a fost schimbat la ${bonus > 0 ? '+' : ''}${bonus}%.`, 'success');
+            }
+            
+            async editHistoryDescription(profileId, entryId, newDescription) {
+                const profile = this.getProfile(profileId);
+                if (!profile) return;
+
+                const entry = profile.history.find(e => e.id === entryId);
+                if (!entry) return;
+
+                entry.description = newDescription.trim();
+
+                await this.save();
+                this.renderProfileDetail(profileId); // Re-render for update
+            }
+            
+            // Logica de ștergere a profilului cu verificare
+            async deleteProfile(profileId) {
+                const profile = this.getProfile(profileId);
+                if (!profile) return this.showMessage('Profilul nu a fost găsit!', 'error');
+
+                // Utilizăm prompt pentru verificare, deoarece alert/confirm sunt interzise
+                const confirmation = prompt(`Pentru a confirma ștergerea profilului "${profile.name}", te rog tastează exact numele acestuia (fără ghilimele):`);
+
+                if (confirmation === profile.name) {
+                    this.profiles = this.profiles.filter(p => p.id !== profileId);
+                    await this.save();
+                    this.showMessage(`Profilul "${profile.name}" a fost șters definitiv.`, 'success');
+                    this.showProfileList(); // Întoarcere la lista principală
+                } else if (confirmation !== null) {
+                    this.showMessage('Numele introdus nu se potrivește. Ștergere anulată.', 'error');
+                }
+                // Dacă user-ul apasă Anulare (null), nu se întâmplă nimic.
+            }
+
+            // ############### Logică de Gruparea a Istoricului ###############
+            
+            async handleMerge(profileId, selectedIds) {
+                const profile = this.getProfile(profileId);
+                if (!profile) return;
+                if (selectedIds.length < 2) return this.showMessage('Selectează minim două acțiuni pentru a le grupa!', 'warning');
+                
+                // Convertim ID-urile în obiecte de istoric pentru a le trimite la HistoryManager
+                const entriesToMerge = profile.history.filter(e => selectedIds.includes(e.id));
+
+                profile.history = this.historyManager.mergeEntries(profile, selectedIds).history;
+
+                await this.save();
+                this.renderProfileDetail(profileId); // Re-render detaliu
+                this.showMessage(`S-au grupat ${selectedIds.length} acțiuni în istoricul lui ${profile.name}.`, 'success');
+            }
+
+            // ############### Logică de Randare ###############
+
+            // Randează cardurile de profil în UI (Pagina Principală)
+            renderProfiles(profiles) {
+                this.mainContainer.innerHTML = ''; 
+
+                if (!this.isAuthReady || profiles.length === 0) {
+                    this.mainContainer.innerHTML = '<p class="text-center col-span-full text-gray-500">Nu s-au găsit profiluri.</p>';
+                    return;
+                }
+
+                profiles.forEach(profile => {
+                    const card = this.createProfileCard(profile);
+                    this.mainContainer.appendChild(card);
+                });
+
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }
+            
+            // Randează Vizualizarea Detaliată (Pagina de Detaliu)
+            renderProfileDetail(profileId) {
+                const profile = this.getProfile(profileId);
+                if (!profile) {
+                    this.showProfileList(); 
+                    return;
+                }
+                
+                const bonusColor = profile.bonusPercentage >= 0 ? 'text-green-600' : 'text-red-600';
+                const bonusSign = profile.bonusPercentage >= 0 ? '+' : '';
+                const auraColor = profile.totalAura >= 0 ? 'text-blue-600' : 'text-red-600';
+
+                this.detailContainer.innerHTML = `
+                    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-2xl border-4 border-violet-500">
+                        <button class="flex items-center text-gray-500 hover:text-violet-600 mb-6 font-semibold" onclick="app.showProfileList()">
+                            <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> Înapoi la Lista de Profiluri
+                        </button>
+                        
+                        <!-- Secțiunea de Antet cu Butonul de Ștergere -->
+                        <div class="flex justify-between items-center border-b pb-4 mb-6">
+                            <h2 class="text-4xl font-extrabold text-violet-800">${profile.name}</h2>
+                            <div class="flex items-center space-x-4">
+                                <button class="btn-aura bg-red-700 hover:bg-red-800 text-white text-base py-1 px-3" onclick="app.deleteProfile('${profile.id}')">
+                                    <i data-lucide="trash-2" class="w-4 h-4 inline-block mr-1"></i> Șterge Profil
+                                </button>
+                                <span class="text-7xl font-black ${auraColor} tracking-tighter">${profile.totalAura}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Secțiunea de Modificare Bonus -->
+                        <div class="p-4 bg-gray-50 rounded-lg mb-6 flex flex-col md:flex-row items-center justify-between shadow-inner">
+                            <p class="text-xl font-semibold text-gray-700">Bonus Aură Curent:</p>
+                            <span class="text-3xl font-bold ${bonusColor} md:mr-6">${bonusSign}${profile.bonusPercentage}%</span>
+                            
+                            <div class="flex space-x-2 mt-3 md:mt-0">
+                                <input type="number" id="detail-bonus-input-${profile.id}" value="${profile.bonusPercentage}" placeholder="Noul Bonus %" class="p-2 border border-gray-300 rounded-lg text-center w-32">
+                                <button class="btn-aura bg-purple-500 text-white text-base py-1 px-4" onclick="app.handleBonusUpdate('${profile.id}')">
+                                    <i data-lucide="percent" class="w-4 h-4 inline-block mr-1"></i>
+                                    Setează
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Secțiunea de Modificare Aura (Butoane + Custom) -->
+                        <div class="mb-8">
+                            <h3 class="text-2xl font-bold text-violet-700 mb-4">Modifică Aură Rapid</h3>
+                            <div class="grid grid-cols-5 gap-3 mb-4">
+                                ${[5, 10, 25, 50, 100].map(v => 
+                                    `<button class="btn-aura btn-positive" data-value="${v}" onclick="app.updateAura('${profile.id}', ${v})">+${v}</button>`
+                                ).join('')}
+                                ${[-5, -10, -25, -50, -100].map(v => 
+                                    `<button class="btn-aura btn-negative" data-value="${v}" onclick="app.updateAura('${profile.id}', ${v})">${v}</button>`
+                                ).join('')}
+                            </div>
+                             <!-- Input Custom Detaliu -->
+                            <div class="flex flex-col space-y-2 p-3 bg-violet-50 rounded-lg border border-violet-100">
+                                <input type="number" id="detail-custom-value-${profile.id}" placeholder="Valoare Custom (ex: 77 sau -33)" class="w-full p-2 border border-gray-300 rounded-lg text-center font-mono">
+                                <input type="text" id="detail-custom-description-${profile.id}" placeholder="Descriere opțională (motiv)" class="w-full p-2 border border-gray-300 rounded-lg text-center text-sm">
+                                <button class="btn-aura btn-primary" onclick="app.handleCustomAuraDetail('${profile.id}')">
+                                    Aplică Schimbarea Personalizată
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Secțiunea Istoric (cu posibilitate de Merge) -->
+                        <h3 class="text-2xl font-bold text-violet-700 mb-4">Istoric Tranzacții</h3>
+                        <div class="flex justify-end mb-3">
+                             <button id="merge-btn-${profile.id}" class="btn-aura bg-blue-500 text-white text-sm opacity-50 cursor-not-allowed py-1 px-3" disabled onclick="app.handleMergeClick('${profile.id}')">
+                                <i data-lucide="combine" class="w-4 h-4 inline-block mr-1"></i> Grupează Selecția
+                            </button>
+                        </div>
+                        <div id="history-container-${profile.id}" class="history-container custom-scrollbar max-h-96 overflow-y-auto p-2 bg-gray-50 rounded-lg border border-gray-200">
+                            <!-- History entries will be rendered here -->
+                        </div>
+                    </div>
+                `;
+                
+                // Randează Istoricul și Iconițele
+                const historyContainer = document.getElementById(`history-container-${profile.id}`);
+                this.renderHistory(profile, historyContainer, true); // True = pe pagina de detaliu
+                
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }
+
+            // Creează elementul DOM (cardul) pentru un profil (Pagina Principală)
+            createProfileCard(profile) {
+                const card = document.createElement('div');
+                card.id = `profile-card-${profile.id}`;
+                card.className = 'aura-card p-6 flex flex-col space-y-4';
+                
+                const bonusColor = profile.bonusPercentage >= 0 ? 'text-green-600' : 'text-red-600';
+                const bonusSign = profile.bonusPercentage >= 0 ? '+' : '';
+                const auraColor = profile.totalAura >= 0 ? 'text-blue-600' : 'text-red-600';
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b pb-3 mb-3 border-violet-100 cursor-pointer" onclick="app.showProfileDetail('${profile.id}')">
+                        <h2 class="text-3xl font-extrabold text-violet-800 hover:text-violet-600 transition-colors">${profile.name}</h2>
+                        <div class="text-right">
+                            <p class="text-base font-semibold text-gray-500">Bonus Aură:</p>
+                            <span class="text-2xl font-bold ${bonusColor}">${bonusSign}${profile.bonusPercentage}%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col items-center justify-center p-4 bg-violet-50 rounded-lg cursor-pointer" onclick="app.showProfileDetail('${profile.id}')">
+                        <p class="text-lg font-medium text-gray-700">Aura Totală:</p>
+                        <span class="text-6xl font-black ${auraColor} tracking-tighter">${profile.totalAura}</span>
+                    </div>
+
+                    <!-- Butoane Predefinite (Quick Actions) -->
+                    <div class="grid grid-cols-5 gap-2">
+                        ${[5, 10, 25, 50, 100].map(v => 
+                            `<button class="btn-aura btn-positive" data-value="${v}" onclick="app.updateAura('${profile.id}', ${v})">+${v}</button>`
+                        ).join('')}
+                        ${[-5, -10, -25, -50, -100].map(v => 
+                            `<button class="btn-aura btn-negative" data-value="${v}" onclick="app.updateAura('${profile.id}', ${v})">${v}</button>`
+                        ).join('')}
+                    </div>
+
+                    <!-- Input Custom (Quick Action) -->
+                    <div class="flex flex-col space-y-2">
+                        <input type="number" id="custom-value-${profile.id}" placeholder="Valoare Custom (ex: 77 sau -33)" class="w-full p-2 border border-gray-300 rounded-lg text-center font-mono">
+                        <button class="btn-aura btn-primary" onclick="app.handleCustomAura('${profile.id}')">
+                            Aplică Schimbarea
+                        </button>
+                    </div>
+
+                    <!-- Istoric Toggle & Merge Button (Doar link) -->
+                    <div class="pt-4 border-t border-violet-100 flex justify-end items-center">
+                        <button class="flex items-center text-violet-600 hover:text-violet-800 font-semibold" onclick="app.showProfileDetail('${profile.id}')">
+                            <i data-lucide="maximize" class="w-5 h-5 mr-1"></i>
+                            Detalii & Istoric (${profile.history.length})
+                        </button>
+                    </div>
+                `;
+                return card;
+            }
+
+            // Randează intrările din istoric într-un container
+            renderHistory(profile, container, isDetailView = false) {
+                container.innerHTML = '';
+                // Se asigură că setul de ID-uri selectate este parsabil
+                const selectedIds = new Set(container.dataset.selectedIds ? JSON.parse(container.dataset.selectedIds).map(id => parseInt(id)) : []);
+                
+                // Actualizează contorul de istoric pe pagina principală
+                const countEl = document.getElementById(`history-count-${profile.id}`);
+                if (countEl) countEl.textContent = profile.history.length;
+
+                profile.history.forEach(entry => {
+                    const entryEl = document.createElement('div');
+                    const valueColor = entry.value >= 0 ? 'text-green-700' : 'text-red-700';
+                    const sign = entry.value >= 0 ? '+' : '';
+                    const isSelected = selectedIds.has(entry.id);
+
+                    // Aplică stilul 'selected' pentru fundal gri/bordură albastră
+                    entryEl.className = `history-entry p-2 my-1 cursor-pointer rounded-lg border border-gray-200 text-sm flex justify-between items-center transition-all duration-100 ${entry.merged ? 'merged' : 'bg-white'} ${isSelected ? 'selected' : ''}`;
+                    entryEl.dataset.id = entry.id;
+                    entryEl.dataset.profileId = profile.id;
+                    
+                    if (isDetailView) {
+                        // Permite selectarea doar în vizualizarea detaliată
+                        entryEl.onclick = (e) => this.toggleEntrySelection(profile.id, entry.id, container);
+                    }
+
+                    const date = new Date(entry.timestamp).toLocaleString('ro-RO', {
+                        year: 'numeric', month: 'short', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                    });
+
+                    // Construcția intrării
+                    entryEl.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold truncate ${valueColor}">${sign}${entry.value} Aură
+                                <span class="text-xs text-gray-500 font-normal ml-2">(${entry.baseValue > 0 ? '+' : ''}${entry.baseValue} bază)</span>
+                            </p>
+                            <p class="text-xs text-gray-500 truncate mt-0.5">${entry.description || 'Fără descriere'}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                             <span class="text-xs text-gray-400 ml-4">${date}</span>
+                             ${isDetailView ? `
+                                <!-- Funcția promptEditDescription primește doar ID-urile. Descrierea este preluată intern pentru a evita probleme de escaping (FIX) -->
+                                <button class="text-violet-500 hover:text-violet-700 p-1 rounded-full hover:bg-violet-100" title="Editează descrierea" onclick="event.stopPropagation(); app.promptEditDescription('${profile.id}', ${entry.id})">
+                                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                                </button>
+                             ` : ''}
+                        </div>
+                    `;
+                    container.appendChild(entryEl);
+                });
+            }
+
+            // Handler pentru intrarea custom de aură pe pagina principală (fără descriere)
+            handleCustomAura(profileId) {
+                const valueInput = document.getElementById(`custom-value-${profileId}`);
+                const baseValue = parseFloat(valueInput.value);
+
+                if (isNaN(baseValue) || baseValue === 0) {
+                    return this.showMessage('Introduceți o valoare numerică validă și non-zero!', 'warning');
+                }
+
+                this.updateAura(profileId, baseValue, 'Custom (Pagina Principală)');
+                valueInput.value = '';
+            }
+            
+            // Handler pentru intrarea custom de aură pe pagina de detaliu (cu descriere)
+            handleCustomAuraDetail(profileId) {
+                const valueInput = document.getElementById(`detail-custom-value-${profileId}`);
+                const descInput = document.getElementById(`detail-custom-description-${profileId}`);
+                const baseValue = parseFloat(valueInput.value);
+                const description = descInput.value.trim();
+
+                if (isNaN(baseValue) || baseValue === 0) {
+                    return this.showMessage('Introduceți o valoare numerică validă și non-zero!', 'warning');
+                }
+
+                this.updateAura(profileId, baseValue, description || 'Custom (fără descriere)');
+                valueInput.value = '';
+                descInput.value = '';
+            }
+            
+            // Handler pentru modificarea bonusului
+            handleBonusUpdate(profileId) {
+                const bonusInput = document.getElementById(`detail-bonus-input-${profileId}`);
+                this.updateBonus(profileId, bonusInput.value);
+            }
+            
+            // Afișează un prompt pentru editarea descrierii (FIX)
+            promptEditDescription(profileId, entryId) {
+                 const profile = this.getProfile(profileId);
+                 if (!profile) return;
+                 const entry = profile.history.find(e => e.id === entryId);
+                 if (!entry) return;
+
+                 // Preluăm direct descrierea curentă din obiectul entry
+                 const currentDescription = entry.description || '';
+
+                 const newDesc = prompt(`Editați descrierea pentru tranzacția ID ${entryId}:`, currentDescription);
+                 
+                 if (newDesc !== null) {
+                     this.editHistoryDescription(profileId, entryId, newDesc);
+                 }
+            }
+
+            // Afișează o notificare de scurtă durată
+            showMessage(message, type = 'info') {
+                const box = document.getElementById('message-box');
+                box.textContent = message;
+                box.classList.remove('bg-green-500', 'bg-red-500', 'bg-yellow-500', 'hidden', 'opacity-0');
+                
+                switch (type) {
+                    case 'success':
+                        box.classList.add('bg-green-500');
+                        break;
+                    case 'error':
+                        box.classList.add('bg-red-500');
+                        break;
+                    case 'warning':
+                    default:
+                        box.classList.add('bg-yellow-500');
+                        break;
+                }
+                
+                box.classList.remove('hidden');
+                setTimeout(() => box.classList.remove('opacity-0'), 10);
+                
+                setTimeout(() => {
+                    box.classList.add('opacity-0');
+                    setTimeout(() => box.classList.add('hidden'), 300);
+                }, 4000);
+            }
+
+            // Marchează/Deselectează o intrare din istoric
+            toggleEntrySelection(profileId, entryId, containerEl) {
+                const entryEl = containerEl.querySelector(`.history-entry[data-id="${entryId}"]`);
+                if (!entryEl) return;
+
+                let selectedIds = new Set(containerEl.dataset.selectedIds ? JSON.parse(containerEl.dataset.selectedIds).map(id => parseInt(id)) : []);
+                
+                if (selectedIds.has(entryId)) {
+                    selectedIds.delete(entryId);
+                    entryEl.classList.remove('selected');
+                } else {
+                    selectedIds.add(entryId);
+                    entryEl.classList.add('selected');
+                }
+                
+                // Re-render pentru a aplica clasa 'selected' la elementul DOM corect
+                if (selectedIds.has(entryId)) {
+                    entryEl.classList.add('selected');
+                } else {
+                    entryEl.classList.remove('selected');
+                }
+
+                containerEl.dataset.selectedIds = JSON.stringify(Array.from(selectedIds));
+                this.updateMergeButtonState(profileId, selectedIds.size);
+            }
+
+            // Actualizează starea vizuală a butonului de grupare
+            updateMergeButtonState(profileId, selectedCount) {
+                const mergeBtn = document.getElementById(`merge-btn-${profileId}`);
+                if (!mergeBtn) return;
+                
+                if (selectedCount >= 2) {
+                    mergeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    mergeBtn.removeAttribute('disabled');
+                    mergeBtn.innerHTML = `<i data-lucide="combine" class="w-4 h-4 inline-block mr-1"></i> Grupează (${selectedCount} acțiuni)`;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                } else {
+                    mergeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    mergeBtn.setAttribute('disabled', 'true');
+                    mergeBtn.innerHTML = '<i data-lucide="combine" class="w-4 h-4 inline-block mr-1"></i> Grupează Selecția';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            }
+
+            // Handler pentru click-ul pe butonul de grupare
+            handleMergeClick(profileId) {
+                const containerEl = document.getElementById(`history-container-${profileId}`);
+                const selectedIds = containerEl.dataset.selectedIds ? JSON.parse(containerEl.dataset.selectedIds).map(id => parseInt(id)) : [];
+                
+                this.handleMerge(profileId, selectedIds);
+                
+                // Resetează selecția după grupare
+                containerEl.dataset.selectedIds = '[]';
+                this.updateMergeButtonState(profileId, 0);
+            }
+            
+            // Filtrează profilurile
+            filterProfiles(searchTerm) {
+                const term = searchTerm.toLowerCase().trim();
+                const filtered = this.profiles.filter(p => p.name.toLowerCase().includes(term));
+                this.renderProfiles(filtered);
+            }
+        }
+
+        // Inițializare globală a aplicației
+        const storageAdapter = new StorageAdapter();
+        const auraCalculator = new AuraCalculator();
+        window.app = new ProfileManager(storageAdapter, auraCalculator);
+        
+        window.onload = () => {
+            app.init();
+        };
+    </script>
+</body>
+</html>
