@@ -1,0 +1,1 @@
+import{f as s,o,g as t,j as r}from"./modules/vue-BLUlgSCj.js";import{J as a}from"./index-C55WS-JX.js";const c={class:"cover"},n={class:"self-center"},m={__name:"cover",setup(_){return a(),(e,l)=>(o(),s("div",c,[t("div",n,[r(e.$slots,"default")])]))}};export{m as _};
