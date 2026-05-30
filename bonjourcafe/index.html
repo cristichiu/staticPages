@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bonjour Café — Chișinău</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --cream:#F5F0E8; --warm:#FDFAF4; --espresso:#2C1A0E; --mocha:#4A2E1A;
+  --caramel:#C8914A; --gold:#B8922A; --sage:#7A8C6E; --charcoal:#3A3530;
+  --mist:#E8E2D8;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--espresso);font-family:'Jost',sans-serif;font-weight:300;overflow-x:hidden}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3.5rem;background:rgba(245,240,232,.95);backdrop-filter:blur(16px);border-bottom:1px solid rgba(44,26,14,.08);transition:padding .4s}
+nav.scrolled{padding:.85rem 3.5rem;box-shadow:0 4px 40px rgba(44,26,14,.06)}
+.nav-logo{display:flex;flex-direction:column;line-height:1;cursor:pointer;text-decoration:none}
+.nav-logo-main{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:500;letter-spacing:.1em;color:var(--espresso)}
+.nav-logo-main em{font-style:italic;color:var(--caramel)}
+.nav-logo-sub{font-size:.52rem;letter-spacing:.35em;font-family:'Jost',sans-serif;font-weight:400;color:var(--caramel);text-transform:uppercase;margin-top:3px}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links button{background:none;border:none;font-family:'Jost',sans-serif;font-size:.76rem;letter-spacing:.18em;text-transform:uppercase;color:var(--charcoal);cursor:pointer;position:relative;padding-bottom:3px;transition:color .3s}
+.nav-links button::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--caramel);transition:width .35s}
+.nav-links button:hover{color:var(--caramel)}
+.nav-links button:hover::after,.nav-links button.active::after{width:100%}
+.nav-links button.active{color:var(--espresso)}
+
+/* PAGES */
+.page{display:none;padding-top:80px;min-height:100vh}
+.page.active{display:block}
+
+/* HERO */
+.hero{min-height:calc(100vh - 80px);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(200,145,74,.13) 0%,transparent 70%),radial-gradient(ellipse 50% 80% at 20% 70%,rgba(122,140,110,.08) 0%,transparent 60%),var(--cream)}
+.hero-ornament{position:absolute;top:12%;right:7%;width:320px;height:320px;border-radius:50%;border:1px solid rgba(200,145,74,.18);pointer-events:none}
+.hero-ornament::before{content:'';position:absolute;inset:22px;border-radius:50%;border:1px solid rgba(200,145,74,.1)}
+.hero-line{position:absolute;left:3.5rem;top:50%;transform:translateY(-50%);width:1px;height:180px;background:linear-gradient(to bottom,transparent,var(--caramel),transparent)}
+.hero-content{position:relative;z-index:2;text-align:center;max-width:800px;padding:2rem;animation:fadeUp .9s ease both}
+.hero-eyebrow{font-family:'Jost',sans-serif;font-size:.7rem;letter-spacing:.45em;text-transform:uppercase;color:var(--caramel);margin-bottom:1.8rem;display:flex;align-items:center;justify-content:center;gap:1rem}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';width:38px;height:1px;background:var(--caramel)}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(3.8rem,9vw,7.5rem);font-weight:300;line-height:.95;color:var(--espresso);margin-bottom:1.2rem;letter-spacing:.02em}
+.hero-title em{font-style:italic;color:var(--caramel)}
+.hero-sub{font-family:'Cormorant Garamond',serif;font-size:clamp(.95rem,2vw,1.3rem);font-style:italic;color:var(--mocha);margin-bottom:2.8rem;letter-spacing:.06em;font-weight:300}
+.hero-btns{display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap}
+.btn-dark{font-family:'Jost',sans-serif;font-size:.73rem;letter-spacing:.22em;text-transform:uppercase;padding:.95rem 2.3rem;background:var(--espresso);color:var(--cream);border:none;cursor:pointer;transition:all .3s;text-decoration:none;display:inline-block}
+.btn-dark:hover{background:var(--mocha);transform:translateY(-1px);box-shadow:0 8px 28px rgba(44,26,14,.2)}
+.btn-outline{font-family:'Jost',sans-serif;font-size:.73rem;letter-spacing:.22em;text-transform:uppercase;padding:.95rem 2.3rem;background:transparent;color:var(--espresso);border:1px solid rgba(44,26,14,.3);cursor:pointer;transition:all .3s;display:inline-block;text-decoration:none}
+.btn-outline:hover{border-color:var(--espresso);background:rgba(44,26,14,.04)}
+
+/* MARQUEE */
+.marquee-strip{background:var(--espresso);padding:.65rem 0;overflow:hidden;white-space:nowrap}
+.marquee-inner{display:inline-block;animation:marquee 24s linear infinite}
+.marquee-inner span{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.95rem;color:rgba(245,240,232,.4);margin-right:2.5rem}
+
+/* SECTIONS */
+.section-label{font-family:'Jost',sans-serif;font-size:.66rem;letter-spacing:.4em;text-transform:uppercase;color:var(--caramel);margin-bottom:.9rem;display:flex;align-items:center;gap:.8rem}
+.section-label::before{content:'';width:26px;height:1px;background:var(--caramel)}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4.5vw,3.5rem);font-weight:400;line-height:1.1;color:var(--espresso)}
+.section-title em{font-style:italic;color:var(--caramel)}
+
+/* ABOUT */
+.about-section{padding:7rem 3.5rem}
+.about-grid{max-width:1150px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:5.5rem;align-items:center}
+.about-visual{position:relative;aspect-ratio:4/5;min-height:400px}
+.av-box{position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,145,74,.1),rgba(122,140,110,.08));border:1px solid rgba(200,145,74,.22)}
+.av-accent{position:absolute;top:-22px;right:-22px;width:48%;height:48%;border:1px solid rgba(200,145,74,.18)}
+.av-stamp{position:absolute;bottom:28px;left:-28px;width:105px;height:105px;border-radius:50%;background:var(--espresso);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--cream);text-align:center}
+.av-stamp .yr{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:500}
+.av-stamp .sn{font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+.av-inner{position:absolute;inset:28px;display:flex;align-items:center;justify-content:center}
+.about-text p{font-size:.93rem;line-height:1.9;color:var(--charcoal);margin-bottom:1.3rem}
+.divider{width:32px;height:1px;background:var(--caramel);margin:1.8rem 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:2.8rem;padding-top:2.8rem;border-top:1px solid rgba(44,26,14,.1)}
+.stat-n{font-family:'Cormorant Garamond',serif;font-size:2.3rem;font-weight:500;color:var(--caramel);line-height:1}
+.stat-l{font-family:'Jost',sans-serif;font-size:.65rem;letter-spacing:.16em;text-transform:uppercase;color:var(--charcoal);margin-top:.35rem;opacity:.65}
+
+/* EXPERIENCE */
+.exp-section{padding:7rem 3.5rem;background:var(--warm)}
+.exp-inner{max-width:1150px;margin:0 auto}
+.exp-head{max-width:500px;margin-bottom:4.5rem}
+.exp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3rem}
+.exp-item{}
+.exp-num{font-family:'Cormorant Garamond',serif;font-size:4.5rem;font-weight:300;color:rgba(200,145,74,.12);line-height:1;display:block;margin-bottom:-1.4rem}
+.exp-div{width:26px;height:1px;background:var(--caramel);margin:1rem 0}
+.exp-t{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:400;color:var(--espresso);margin-bottom:.7rem}
+.exp-p{font-size:.86rem;line-height:1.8;color:var(--charcoal);opacity:.72}
+
+/* QUOTE */
+.quote-section{padding:6.5rem 3.5rem;text-align:center}
+.quote-inner{max-width:780px;margin:0 auto;position:relative}
+.quote-mark{font-family:'Cormorant Garamond',serif;font-size:11rem;color:rgba(200,145,74,.09);position:absolute;top:-3.5rem;left:-1.5rem;line-height:1;pointer-events:none}
+.quote-text{font-family:'Cormorant Garamond',serif;font-size:clamp(1.3rem,2.8vw,2.1rem);font-style:italic;font-weight:300;color:var(--espresso);line-height:1.55;position:relative;z-index:1;transition:opacity .5s}
+.quote-author{font-family:'Jost',sans-serif;font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--caramel);margin-top:1.8rem}
+.quote-dots{display:flex;gap:.5rem;justify-content:center;margin-top:2.2rem}
+.qdot{width:7px;height:7px;border-radius:50%;background:rgba(200,145,74,.28);cursor:pointer;border:none;transition:all .3s}
+.qdot.active{background:var(--caramel);transform:scale(1.3)}
+
+/* LOCATIONS TEASER */
+.locs-section{padding:7rem 3.5rem;background:var(--mist)}
+.locs-inner{max-width:1150px;margin:0 auto}
+.locs-head{text-align:center;margin-bottom:3.8rem}
+.locs-head .section-label{justify-content:center}
+.locs-head .section-label::before{display:none}
+.locs-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.8rem}
+.loc-card{background:var(--warm);padding:2.3rem;border-bottom:2px solid transparent;transition:border-color .3s}
+.loc-card:hover{border-color:var(--caramel)}
+.loc-icon{font-size:1.5rem;margin-bottom:1.1rem}
+.loc-name{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:500;color:var(--espresso);margin-bottom:.55rem}
+.loc-addr{font-size:.8rem;color:var(--charcoal);opacity:.6;line-height:1.6;margin-bottom:1.1rem}
+.loc-hrs{font-family:'Jost',sans-serif;font-size:.7rem;letter-spacing:.12em;color:var(--caramel);text-transform:uppercase}
+.loc-ph{font-family:'Jost',sans-serif;font-size:.8rem;color:var(--charcoal);opacity:.6;margin-top:.35rem}
+
+/* MENU PAGE */
+.menu-page{background:var(--espresso);min-height:100vh}
+.menu-hero{padding:4rem 3.5rem 2rem}
+.menu-hero .section-label{color:var(--caramel)}
+.menu-hero .section-title{color:var(--cream)}
+.menu-hero .section-title em{color:var(--caramel)}
+.menu-cats{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:2.5rem}
+.mcat{font-family:'Jost',sans-serif;font-size:.7rem;letter-spacing:.17em;text-transform:uppercase;padding:.48rem 1.2rem;border:1px solid rgba(245,240,232,.18);color:rgba(245,240,232,.55);background:transparent;cursor:pointer;transition:all .3s}
+.mcat:hover,.mcat.active{background:var(--caramel);border-color:var(--caramel);color:var(--cream)}
+.menu-grid{max-width:100%;padding:2rem 3.5rem 5rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:1.5px}
+.mcard{background:rgba(245,240,232,.04);border:1px solid rgba(245,240,232,.07);padding:1.9rem 1.9rem 1.7rem;position:relative;overflow:hidden;transition:background .35s}
+.mcard::before{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:var(--caramel);transition:width .4s}
+.mcard:hover{background:rgba(245,240,232,.08)}
+.mcard:hover::before{width:100%}
+.mcard-cat{font-family:'Jost',sans-serif;font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;color:var(--caramel);margin-bottom:.7rem}
+.mcard-name{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:400;color:var(--cream);margin-bottom:.45rem;line-height:1.2}
+.mcard-desc{font-size:.8rem;color:rgba(245,240,232,.48);line-height:1.6;margin-bottom:1.3rem;font-style:italic}
+.mcard-foot{display:flex;justify-content:space-between;align-items:center}
+.mcard-price{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:500;color:var(--caramel)}
+.mcard-tag{font-family:'Jost',sans-serif;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;padding:.22rem .65rem;border:1px solid rgba(200,145,74,.3);color:rgba(200,145,74,.7)}
+
+/* ABOUT PAGE */
+.about-page{padding:5rem 3.5rem 7rem}
+.about-page-inner{max-width:1150px;margin:0 auto}
+.about-page-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;margin-top:3.5rem;align-items:start}
+.big-quote{font-family:'Cormorant Garamond',serif;font-size:clamp(1.25rem,2.5vw,1.75rem);font-style:italic;font-weight:300;color:var(--mocha);line-height:1.6;margin-bottom:2rem}
+.vals-box{background:var(--mist);padding:2.5rem}
+.vals-box h4{font-family:'Jost',sans-serif;font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:var(--espresso);margin-bottom:1.5rem}
+.val-item{margin-bottom:1.4rem}
+.val-item-t{font-family:'Jost',sans-serif;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--caramel);margin-bottom:.35rem}
+.val-item-p{font-size:.85rem;line-height:1.7;color:var(--charcoal);opacity:.72}
+.charity-box{background:var(--espresso);padding:2rem;margin-top:1.5rem}
+.charity-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.92rem;color:rgba(245,240,232,.65);line-height:1.6}
+
+/* LOCATIONS PAGE */
+.loc-page{padding:5rem 3.5rem 7rem;background:var(--mist);min-height:100vh}
+.loc-page-inner{max-width:1150px;margin:0 auto}
+.loc-page-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.8rem;margin:3.5rem 0 3rem}
+.loc-detail-card{background:var(--warm);padding:2.5rem;border-bottom:2px solid transparent;transition:border-color .3s}
+.loc-detail-card:hover{border-color:var(--caramel)}
+.loc-note{font-family:'Jost',sans-serif;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sage);margin-top:1rem;padding-top:1rem;border-top:1px solid var(--mist)}
+.contact-banner{background:var(--espresso);padding:2.8rem 3rem;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap}
+.contact-banner-t{font-family:'Cormorant Garamond',serif;font-size:1.55rem;color:var(--cream);margin-bottom:.4rem}
+.contact-banner-s{font-size:.83rem;color:rgba(245,240,232,.45)}
+.contact-btns{display:flex;gap:1.2rem;flex-wrap:wrap}
+.btn-caramel{font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;padding:.9rem 2rem;background:var(--caramel);color:var(--cream);border:none;cursor:pointer;text-decoration:none;display:inline-block;transition:all .3s}
+.btn-caramel:hover{background:var(--gold)}
+.btn-ghost-light{font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;padding:.9rem 2rem;background:transparent;color:var(--cream);border:1px solid rgba(245,240,232,.28);cursor:pointer;text-decoration:none;display:inline-block;transition:all .3s}
+.btn-ghost-light:hover{border-color:rgba(245,240,232,.6)}
+
+/* FOOTER */
+footer{background:var(--espresso);color:rgba(245,240,232,.6);padding:5rem 3.5rem 2.5rem}
+.ft-inner{max-width:1150px;margin:0 auto}
+.ft-top{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:3.5rem;padding-bottom:3rem;border-bottom:1px solid rgba(245,240,232,.08)}
+.ft-logo{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:400;color:var(--cream);letter-spacing:.09em;margin-bottom:.45rem}
+.ft-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.9rem;color:rgba(245,240,232,.45);margin-bottom:1.7rem;line-height:1.55}
+.ft-social{display:flex;gap:.9rem}
+.soc-btn{width:34px;height:34px;border:1px solid rgba(245,240,232,.15);display:flex;align-items:center;justify-content:center;color:rgba(245,240,232,.45);text-decoration:none;font-size:.7rem;font-family:'Jost',sans-serif;transition:all .3s;letter-spacing:.05em}
+.soc-btn:hover{border-color:var(--caramel);color:var(--caramel)}
+.ft-col h4{font-family:'Jost',sans-serif;font-size:.66rem;letter-spacing:.28em;text-transform:uppercase;color:var(--cream);margin-bottom:1.4rem}
+.ft-col ul{list-style:none}
+.ft-col ul li{margin-bottom:.75rem}
+.ft-col ul li a,.ft-col ul li span{font-size:.83rem;color:rgba(245,240,232,.5);text-decoration:none;cursor:pointer;transition:color .3s;font-family:'Jost',sans-serif}
+.ft-col ul li a:hover,.ft-col ul li span:hover{color:var(--caramel)}
+.ft-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:2.2rem;flex-wrap:wrap;gap:.8rem}
+.ft-copy{font-size:.76rem;color:rgba(245,240,232,.3)}
+.ft-made{font-size:.76rem;color:rgba(245,240,232,.2);font-style:italic}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* RESPONSIVE */
+@media(max-width:880px){
+  nav{padding:1rem 1.5rem}
+  nav.scrolled{padding:.8rem 1.5rem}
+  .nav-links{display:none}
+  .about-grid,.exp-grid,.locs-cards,.loc-page-cards,.ft-top,.about-page-grid{grid-template-columns:1fr;gap:2rem}
+  .about-section,.exp-section,.quote-section,.locs-section,.about-page,.loc-page{padding:5rem 1.5rem}
+  .menu-hero,.menu-grid{padding-left:1.5rem;padding-right:1.5rem}
+  .contact-banner{padding:2rem 1.5rem}
+  footer{padding:3.5rem 1.5rem 2rem}
+  .hero{padding:1rem}
+  .hero-line{display:none}
+  .hero-ornament{width:200px;height:200px;right:0;top:5%}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo" onclick="goTo('home')">
+    <div class="nav-logo-main">Bonjour <em>Café</em></div>
+    <div class="nav-logo-sub">Chișinău · Moldova</div>
+  </div>
+  <ul class="nav-links">
+    <li><button id="nav-home" class="active" onclick="goTo('home')">Acasă</button></li>
+    <li><button id="nav-menu" onclick="goTo('menu')">Meniu</button></li>
+    <li><button id="nav-about" onclick="goTo('about')">Povestea noastră</button></li>
+    <li><button id="nav-locations" onclick="goTo('locations')">Locații</button></li>
+  </ul>
+</nav>
+
+<!-- ══════════════════ HOME ══════════════════ -->
+<div id="page-home" class="page active">
+
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-ornament"></div>
+    <div class="hero-line"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">Depuis Chișinău</div>
+      <h1 class="hero-title">L'art du<br><em>café</em></h1>
+      <p class="hero-sub">Băuturi pentru toate gusturile · Patiserie pariziană · Atmosferă caldă</p>
+      <div class="hero-btns">
+        <button class="btn-dark" onclick="goTo('menu')">Descoperă meniul</button>
+        <button class="btn-outline" onclick="goTo('about')">Povestea noastră</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="marquee-strip">
+    <div class="marquee-inner">
+      <span>Espresso</span><span>Croissant</span><span>Latte</span><span>Matcha</span><span>Cheesecake</span><span>Cortado</span><span>Patiserie</span><span>Chișinău</span>
+      <span>Espresso</span><span>Croissant</span><span>Latte</span><span>Matcha</span><span>Cheesecake</span><span>Cortado</span><span>Patiserie</span><span>Chișinău</span>
+      <span>Espresso</span><span>Croissant</span><span>Latte</span><span>Matcha</span><span>Cheesecake</span><span>Cortado</span><span>Patiserie</span><span>Chișinău</span>
+    </div>
+  </div>
+
+  <section class="about-section">
+    <div class="about-grid">
+      <div class="about-visual reveal">
+        <div class="av-box"></div>
+        <div class="av-accent"></div>
+        <div class="av-stamp"><span class="yr">2018</span><span class="sn">depuis</span></div>
+        <div class="av-inner">
+          <svg width="240" height="320" viewBox="0 0 240 320" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:.16">
+            <ellipse cx="120" cy="220" rx="72" ry="14" stroke="#4A2E1A" stroke-width="1.5"/>
+            <path d="M55 158 Q55 220 120 220 Q185 220 185 158" stroke="#4A2E1A" stroke-width="1.5" fill="none"/>
+            <line x1="55" y1="158" x2="55" y2="126" stroke="#4A2E1A" stroke-width="1.5"/>
+            <line x1="185" y1="158" x2="185" y2="126" stroke="#4A2E1A" stroke-width="1.5"/>
+            <path d="M55 126 Q120 108 185 126" stroke="#4A2E1A" stroke-width="1.5" fill="none"/>
+            <path d="M105 126 Q115 78 120 62 Q125 78 135 126" stroke="#4A2E1A" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+            <ellipse cx="120" cy="244" rx="88" ry="16" stroke="#4A2E1A" stroke-width="1.5" fill="none"/>
+            <path d="M185 220 Q208 220 208 238 Q208 248 185 248" stroke="#4A2E1A" stroke-width="1.5" fill="none"/>
+            <ellipse cx="78" cy="276" rx="10" ry="6" stroke="#4A2E1A" stroke-width="1" fill="none" transform="rotate(-28 78 276)"/>
+            <ellipse cx="162" cy="280" rx="10" ry="6" stroke="#4A2E1A" stroke-width="1" fill="none" transform="rotate(22 162 280)"/>
+            <ellipse cx="120" cy="290" rx="10" ry="6" stroke="#4A2E1A" stroke-width="1" fill="none"/>
+            <text x="52" y="50" font-size="14" fill="#4A2E1A">✦</text>
+            <text x="178" y="38" font-size="9" fill="#4A2E1A">✦</text>
+            <text x="200" y="95" font-size="7" fill="#4A2E1A">✦</text>
+          </svg>
+        </div>
+      </div>
+      <div class="about-text reveal">
+        <div class="section-label">Notre histoire</div>
+        <h2 class="section-title">O cafenea cu <em>suflet parizian</em></h2>
+        <div class="divider"></div>
+        <p>Bonjour Café s-a născut din dragostea pentru ritualul cafelei bune și dorința de a aduce un colț de Paris în inima Chișinăului. Fiecare dimineață este o invitație să te oprești, să respiri și să savurezi.</p>
+        <p>Folosim boabe de specialitate preparate pe echipamente La Marzocco & Mahlkönig, servite de bariști pasionați care înțeleg că o cafea bună este mai mult decât o băutură — este un moment.</p>
+        <div class="stats">
+          <div><div class="stat-n">4.6★</div><div class="stat-l">Rating Google</div></div>
+          <div><div class="stat-n">3+</div><div class="stat-l">Locații</div></div>
+          <div><div class="stat-n">14K</div><div class="stat-l">Urmăritori</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="exp-section">
+    <div class="exp-inner">
+      <div class="exp-head reveal">
+        <div class="section-label">Ce oferim</div>
+        <h2 class="section-title">Experiența <em>Bonjour</em></h2>
+      </div>
+      <div class="exp-grid">
+        <div class="exp-item reveal">
+          <span class="exp-num">01</span>
+          <div class="exp-div"></div>
+          <h3 class="exp-t">Cafea Specialty</h3>
+          <p class="exp-p">Boabe selecționate din cele mai renumite origini, preparate pe echipamente La Marzocco & Mahlkönig pentru o ceașcă perfectă de fiecare dată.</p>
+        </div>
+        <div class="exp-item reveal">
+          <span class="exp-num">02</span>
+          <div class="exp-div"></div>
+          <h3 class="exp-t">Patiserie Pariziană</h3>
+          <p class="exp-p">Croissante, cheesecake, brioche și alte delicii coapte zilnic, care completează perfect ritualul cafelei de dimineață.</p>
+        </div>
+        <div class="exp-item reveal">
+          <span class="exp-num">03</span>
+          <div class="exp-div"></div>
+          <h3 class="exp-t">Atmosferă Unică</h3>
+          <p class="exp-p">Muzică franceză, decoruri calde și o ambianță care te transportă. Un colț de Paris în inima Chișinăului, în mijlocul parcului.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quote-section">
+    <div class="quote-inner">
+      <div class="quote-mark">"</div>
+      <p class="quote-text" id="quote-text">Dacă îți lipsește Franța, oprește-te la Bonjour Cafe. Vei fi întâmpinat cu căldură, iar muzica pariziană îți va mângâia urechile.</p>
+      <div class="quote-author" id="quote-author">— Client fidel</div>
+      <div class="quote-dots">
+        <button class="qdot active" id="qdot-0" onclick="setQuote(0)"></button>
+        <button class="qdot" id="qdot-1" onclick="setQuote(1)"></button>
+        <button class="qdot" id="qdot-2" onclick="setQuote(2)"></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="locs-section">
+    <div class="locs-inner">
+      <div class="locs-head reveal">
+        <div class="section-label">Unde ne găsești</div>
+        <h2 class="section-title">Locațiile <em>noastre</em></h2>
+        <p style="max-width:460px;margin:.5rem auto 0;font-size:.88rem;color:var(--charcoal);opacity:.6;line-height:1.7">Trei colțuri de Paris în Chișinău, fiecare cu atmosfera sa unică.</p>
+      </div>
+      <div class="locs-cards">
+        <div class="loc-card reveal">
+          <div class="loc-icon">🌿</div>
+          <div class="loc-name">Parc Catedralei</div>
+          <div class="loc-addr">Str. Columna 106, Parcul Catedralei (intrarea din strada pietonală)</div>
+          <div class="loc-hrs">⏱ 07:00 – 23:00</div>
+          <div class="loc-ph">+373 695 96 959</div>
+        </div>
+        <div class="loc-card reveal">
+          <div class="loc-icon">🏛️</div>
+          <div class="loc-name">Grădina Publică</div>
+          <div class="loc-addr">Grădina Publică Ștefan cel Mare, Chișinău</div>
+          <div class="loc-hrs">⏱ 07:00 – 23:00</div>
+          <div class="loc-ph">+373 690 13 732</div>
+        </div>
+        <div class="loc-card reveal">
+          <div class="loc-icon">✨</div>
+          <div class="loc-name">Café Maison</div>
+          <div class="loc-addr">Str. Vlaicu Pîrcălab 77, Chișinău</div>
+          <div class="loc-hrs">⏱ 07:00 – 23:00</div>
+          <div class="loc-ph">+373 695 96 959</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="ft-inner">
+      <div class="ft-top">
+        <div>
+          <div class="ft-logo">Bonjour Café</div>
+          <div class="ft-tagline">Servim băuturi pentru toate gusturile, produse de patiserie savuroase și vibrații de note muzicale în cea mai plăcută ambianță pariziană.</div>
+          <div class="ft-social">
+            <a class="soc-btn" href="https://www.instagram.com/bonjour.cafe.md/" target="_blank">ig</a>
+            <a class="soc-btn" href="https://www.facebook.com/bonjour.cafe.md/" target="_blank">fb</a>
+          </div>
+        </div>
+        <div class="ft-col">
+          <h4>Pagini</h4>
+          <ul>
+            <li><span onclick="goTo('home')">Acasă</span></li>
+            <li><span onclick="goTo('menu')">Meniu</span></li>
+            <li><span onclick="goTo('about')">Povestea noastră</span></li>
+            <li><span onclick="goTo('locations')">Locații</span></li>
+          </ul>
+        </div>
+        <div class="ft-col">
+          <h4>Program</h4>
+          <ul>
+            <li><span>Luni – Duminică</span></li>
+            <li><span>07:00 – 23:00</span></li>
+            <li><span style="font-style:italic;font-size:.78rem">Zilnic, non-stop în sezon</span></li>
+          </ul>
+        </div>
+        <div class="ft-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="tel:+37369596959">+373 695 96 959</a></li>
+            <li><a href="mailto:bonjour.cafe.md@gmail.com">bonjour.cafe.md@gmail.com</a></li>
+            <li><a href="https://www.instagram.com/bonjour.cafe.md/" target="_blank">@bonjour.cafe.md</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="ft-bottom">
+        <div class="ft-copy">© 2024 Bonjour Café Chișinău. Toate drepturile rezervate.</div>
+        <div class="ft-made">Prototip website · Chișinău, Moldova</div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════ MENU ══════════════════ -->
+<div id="page-menu" class="page">
+  <div class="menu-page">
+    <div class="menu-hero">
+      <div class="section-label">Notre carte</div>
+      <h1 class="section-title">Meniul <em>nostru</em></h1>
+      <div class="menu-cats" id="menu-cats"></div>
+    </div>
+    <div class="menu-grid" id="menu-grid"></div>
+  </div>
+  <footer>
+    <div class="ft-inner">
+      <div class="ft-top">
+        <div>
+          <div class="ft-logo">Bonjour Café</div>
+          <div class="ft-tagline">Servim băuturi pentru toate gusturile și produse de patiserie savuroase.</div>
+          <div class="ft-social">
+            <a class="soc-btn" href="https://www.instagram.com/bonjour.cafe.md/" target="_blank">ig</a>
+            <a class="soc-btn" href="https://www.facebook.com/bonjour.cafe.md/" target="_blank">fb</a>
+          </div>
+        </div>
+        <div class="ft-col"><h4>Pagini</h4><ul>
+          <li><span onclick="goTo('home')">Acasă</span></li>
+          <li><span onclick="goTo('menu')">Meniu</span></li>
+          <li><span onclick="goTo('about')">Povestea noastră</span></li>
+          <li><span onclick="goTo('locations')">Locații</span></li>
+        </ul></div>
+        <div class="ft-col"><h4>Program</h4><ul><li><span>Luni – Duminică</span></li><li><span>07:00 – 23:00</span></li></ul></div>
+        <div class="ft-col"><h4>Contact</h4><ul><li><a href="tel:+37369596959">+373 695 96 959</a></li><li><a href="mailto:bonjour.cafe.md@gmail.com">Email</a></li></ul></div>
+      </div>
+      <div class="ft-bottom"><div class="ft-copy">© 2024 Bonjour Café Chișinău</div></div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════ ABOUT ══════════════════ -->
+<div id="page-about" class="page">
+  <div class="about-page">
+    <div class="about-page-inner">
+      <div class="section-label">Notre histoire</div>
+      <h1 class="section-title">Povestea din <em>spatele ceștii</em></h1>
+      <div class="about-page-grid">
+        <div>
+          <p class="big-quote">„Dacă îți lipsește Franța, vino la Bonjour. Vei fi întâmpinat cu căldură, iar muzica pariziană îți va mângâia urechile."</p>
+          <p style="font-size:.93rem;line-height:1.9;color:var(--charcoal);margin-bottom:1.3rem">Bonjour Café este mai mult decât o cafenea — este un loc de refugiu în mijlocul orașului. Fondată cu pasiune și dedicată calității, cafeneaua noastră a devenit un reper al Chișinăului.</p>
+          <p style="font-size:.93rem;line-height:1.9;color:var(--charcoal);margin-bottom:1.3rem">Echipamentele noastre — mașinile La Marzocco și râșnițele Mahlkönig — nu sunt un accident. Sunt o declarație de intenție: vrem să-ți oferim ce e mai bun din lumea cafelei specialty.</p>
+          <p style="font-size:.93rem;line-height:1.9;color:var(--charcoal)">Pe lângă cafea, suntem mândri de patiseria noastră proaspătă zilnic — croissante, cheesecake și produse de brutărie care completează perfect ritualul dimineții.</p>
+        </div>
+        <div>
+          <div class="vals-box">
+            <h4>Valorile noastre</h4>
+            <div class="val-item"><div class="val-item-t">Calitate</div><div class="val-item-p">Folosim doar boabe de specialitate și echipamente profesionale pentru o cafea ireproșabilă.</div></div>
+            <div class="val-item"><div class="val-item-t">Comunitate</div><div class="val-item-p">Suntem un loc de întâlnire pentru chișinăueni și vizitatori — un spațiu al conexiunilor umane.</div></div>
+            <div class="val-item"><div class="val-item-t">Responsabilitate</div><div class="val-item-p">Parteneri ai Hospices of Hope Moldova, contribuind la îngrijirea persoanelor vulnerabile.</div></div>
+          </div>
+          <div class="charity-box">
+            <div class="charity-text">Suntem parteneri ai Hospices of Hope Moldova — o parte din fiecare cafea contribuie la îngrijirea persoanelor cu boli limitatoare de viață.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div class="ft-inner">
+      <div class="ft-top">
+        <div><div class="ft-logo">Bonjour Café</div><div class="ft-tagline">Atmosferă pariziană în inima Chișinăului.</div><div class="ft-social"><a class="soc-btn" href="https://www.instagram.com/bonjour.cafe.md/" target="_blank">ig</a><a class="soc-btn" href="https://www.facebook.com/bonjour.cafe.md/" target="_blank">fb</a></div></div>
+        <div class="ft-col"><h4>Pagini</h4><ul><li><span onclick="goTo('home')">Acasă</span></li><li><span onclick="goTo('menu')">Meniu</span></li><li><span onclick="goTo('about')">Povestea noastră</span></li><li><span onclick="goTo('locations')">Locații</span></li></ul></div>
+        <div class="ft-col"><h4>Program</h4><ul><li><span>Luni – Duminică</span></li><li><span>07:00 – 23:00</span></li></ul></div>
+        <div class="ft-col"><h4>Contact</h4><ul><li><a href="tel:+37369596959">+373 695 96 959</a></li><li><a href="mailto:bonjour.cafe.md@gmail.com">Email</a></li></ul></div>
+      </div>
+      <div class="ft-bottom"><div class="ft-copy">© 2024 Bonjour Café Chișinău</div></div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════ LOCATIONS ══════════════════ -->
+<div id="page-locations" class="page">
+  <div class="loc-page">
+    <div class="loc-page-inner">
+      <div style="text-align:center;margin-bottom:.5rem">
+        <div class="section-label" style="justify-content:center"><span style="display:inline-block;width:26px;height:1px;background:var(--caramel);margin-right:.8rem"></span>Unde ne găsești</div>
+        <h1 class="section-title">Locațiile <em>Bonjour</em></h1>
+        <p style="max-width:460px;margin:.5rem auto 0;font-size:.88rem;color:var(--charcoal);opacity:.6;line-height:1.7">Trei colțuri de Paris în Chișinău, fiecare cu atmosfera sa unică.</p>
+      </div>
+      <div class="loc-page-cards">
+        <div class="loc-detail-card">
+          <div class="loc-icon">🌿</div>
+          <div class="loc-name">Parc Catedralei</div>
+          <div class="loc-addr">Str. Columna 106, Parcul Catedralei (intrarea din strada pietonală), Chișinău</div>
+          <div class="loc-hrs">⏱ 07:00 – 23:00</div>
+          <div class="loc-ph">+373 695 96 959</div>
+          <div class="loc-note">Locație principală · Terasă exterioară</div>
+        </div>
+        <div class="loc-detail-card">
+          <div class="loc-icon">🏛️</div>
+          <div class="loc-name">Grădina Publică</div>
+          <div class="loc-addr">Grădina Publică Ștefan cel Mare, Chișinău, Moldova</div>
+          <div class="loc-hrs">⏱ 07:00 – 23:00</div>
+          <div class="loc-ph">+373 690 13 732</div>
+          <div class="loc-note">În parc · Self-service · Iglu de iarnă</div>
+        </div>
+        <div class="loc-detail-card">
+          <div class="loc-icon">✨</div>
+          <div class="loc-name">Café Maison</div>
+          <div class="loc-addr">Str. Vlaicu Pîrcălab 77, Chișinău, Moldova</div>
+          <div class="loc-hrs">⏱ 07:00 – 23:00</div>
+          <div class="loc-ph">+373 695 96 959</div>
+          <div class="loc-note">Locație nouă · Interior cochet</div>
+        </div>
+      </div>
+      <div class="contact-banner">
+        <div>
+          <div class="contact-banner-t">Rezervări & Contact</div>
+          <div class="contact-banner-s">Pentru grupuri, evenimente sau întrebări</div>
+        </div>
+        <div class="contact-btns">
+          <a href="tel:+37369596959" class="btn-caramel">📞 +373 695 96 959</a>
+          <a href="mailto:bonjour.cafe.md@gmail.com" class="btn-ghost-light">✉ Email</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div class="ft-inner">
+      <div class="ft-top">
+        <div><div class="ft-logo">Bonjour Café</div><div class="ft-tagline">Atmosferă pariziană în inima Chișinăului.</div><div class="ft-social"><a class="soc-btn" href="https://www.instagram.com/bonjour.cafe.md/" target="_blank">ig</a><a class="soc-btn" href="https://www.facebook.com/bonjour.cafe.md/" target="_blank">fb</a></div></div>
+        <div class="ft-col"><h4>Pagini</h4><ul><li><span onclick="goTo('home')">Acasă</span></li><li><span onclick="goTo('menu')">Meniu</span></li><li><span onclick="goTo('about')">Povestea noastră</span></li><li><span onclick="goTo('locations')">Locații</span></li></ul></div>
+        <div class="ft-col"><h4>Program</h4><ul><li><span>Luni – Duminică</span></li><li><span>07:00 – 23:00</span></li></ul></div>
+        <div class="ft-col"><h4>Contact</h4><ul><li><a href="tel:+37369596959">+373 695 96 959</a></li><li><a href="mailto:bonjour.cafe.md@gmail.com">Email</a></li></ul></div>
+      </div>
+      <div class="ft-bottom"><div class="ft-copy">© 2024 Bonjour Café Chișinău</div></div>
+    </div>
+  </footer>
+</div>
+
+<script>
+// ─── DATA ───
+const MENU = [
+  {cat:'Cafea',name:'Espresso',desc:'Extracție clasică din boabe de specialty, intensă și aromată.',price:35,tag:'Best seller'},
+  {cat:'Cafea',name:'Cortado',desc:'Espresso echilibrat cu o cantitate egală de lapte aburit.',price:42,tag:null},
+  {cat:'Cafea',name:'Flat White',desc:'Espresso dublu cu lapte microfrotat cremos — pentru iubitorii de cafea puternică.',price:52,tag:null},
+  {cat:'Cafea',name:'Cappuccino',desc:'Espresso, lapte aburit și spumă densă — clasicul italian preferat.',price:48,tag:null},
+  {cat:'Cafea',name:'Latte',desc:'Espresso cu multă spumă fină de lapte, delicat și cremos.',price:52,tag:null},
+  {cat:'Cafea',name:'Cold Brew',desc:'Cafea extrasă la rece timp de 18 ore. Intensă, netedă, revigorantă.',price:55,tag:'Sezonier'},
+  {cat:'Băuturi calde',name:'Matcha Latte',desc:'Pudră de matcha japoneză cu lapte de ovăz cremos.',price:58,tag:'Popular'},
+  {cat:'Băuturi calde',name:'Chai Latte',desc:'Scorțișoară, cardamom, ghimbir — cu lapte aburit.',price:52,tag:null},
+  {cat:'Băuturi calde',name:'Ceai de Ghimbir',desc:'Infuzie proaspătă de ghimbir cu lămâie și miere.',price:42,tag:null},
+  {cat:'Patiserie',name:'Croissant cu Unt',desc:'Foitaj franțuzesc stratificat, crocant la exterior. Prăjit zilnic.',price:38,tag:'Proaspăt'},
+  {cat:'Patiserie',name:'Cheesecake New York',desc:'Cremă densă de brânzică pe blat de biscuiți, copt lent.',price:62,tag:null},
+  {cat:'Patiserie',name:'Pain au Chocolat',desc:'Croissant cu ciocolată belgiană, gata de la primele ore.',price:45,tag:null},
+  {cat:'Patiserie',name:'Ecler cu Vanilie',desc:'Patiserie clasică franceză cu cremă de vanilie și glazură fină.',price:48,tag:null},
+  {cat:'Băuturi reci',name:'Limonadă de Casă',desc:'Lămâie, mentă și apă cu bule — răcoritoare și naturală.',price:45,tag:null},
+  {cat:'Băuturi reci',name:'Smoothie Fructe',desc:'Fructe proaspete de sezon mixate. Varianta zilei — întreabă bariștii.',price:58,tag:'Sezonier'},
+];
+
+const QUOTES = [
+  {text:'Dacă îți lipsește Franța, oprește-te la Bonjour Cafe. Vei fi întâmpinat cu căldură, iar muzica pariziană îți va mângâia urechile.',author:'Client fidel'},
+  {text:'O cafea delicioasă într-un parc frumos — exact ce ai nevoie pentru a începe ziua cu zâmbetul pe buze.',author:'Recenzie Google, 5★'},
+  {text:'The best coffee spot in the city. Great atmosphere, friendly staff, and espresso that rivals anything in Paris.',author:'Vizitator internațional'},
+];
+
+// ─── NAVIGATION ───
+function goTo(pg) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + pg).classList.add('active');
+  const nb = document.getElementById('nav-' + pg);
+  if (nb) nb.classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  setTimeout(initReveal, 80);
+  if (pg === 'menu') renderMenu('Toate');
+}
+
+// ─── MENU RENDER ───
+let activeMenuCat = 'Toate';
+function renderMenu(cat) {
+  activeMenuCat = cat;
+  const cats = ['Toate', ...new Set(MENU.map(i => i.cat))];
+  const catsEl = document.getElementById('menu-cats');
+  catsEl.innerHTML = cats.map(c =>
+    `<button class="mcat${c === cat ? ' active' : ''}" onclick="renderMenu('${c}')">${c}</button>`
+  ).join('');
+  const items = cat === 'Toate' ? MENU : MENU.filter(i => i.cat === cat);
+  document.getElementById('menu-grid').innerHTML = items.map(item => `
+    <div class="mcard">
+      <div class="mcard-cat">${item.cat}</div>
+      <div class="mcard-name">${item.name}</div>
+      <div class="mcard-desc">${item.desc}</div>
+      <div class="mcard-foot">
+        <div class="mcard-price">${item.price} MDL</div>
+        ${item.tag ? `<div class="mcard-tag">${item.tag}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── QUOTES ───
+let activeQuote = 0;
+function setQuote(i) {
+  activeQuote = i;
+  const qt = document.getElementById('quote-text');
+  const qa = document.getElementById('quote-author');
+  qt.style.opacity = '0';
+  setTimeout(() => {
+    qt.textContent = QUOTES[i].text;
+    qa.textContent = '— ' + QUOTES[i].author;
+    qt.style.opacity = '1';
+  }, 250);
+  document.querySelectorAll('.qdot').forEach((d, idx) => {
+    d.classList.toggle('active', idx === i);
+  });
+}
+
+// ─── SCROLL NAV ───
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// ─── REVEAL ON SCROLL ───
+function initReveal() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold: 0.1});
+  document.querySelectorAll('.reveal:not(.visible)').forEach(el => obs.observe(el));
+}
+
+// ─── AUTO QUOTE ───
+setInterval(() => setQuote((activeQuote + 1) % QUOTES.length), 5000);
+
+// ─── INIT ───
+document.addEventListener('DOMContentLoaded', () => {
+  initReveal();
+  renderMenu('Toate');
+});
+</script>
+</body>
+</html>
