@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafea Bună</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5efe6;
+            color: #3d2b1f;
+        }
+
+        header {
+            background-color: #5c3d2e;
+            color: white;
+            padding: 20px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+        }
+
+        .hero h2 {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 18px;
+        }
+
+        .products {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            padding: 20px 40px 40px;
+        }
+
+        .card {
+            background-color: white;
+            width: 220px;
+            padding: 25px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin-top: 10px;
+        }
+
+        .price {
+            font-weight: bold;
+            color: #c47a45;
+        }
+
+        .card button {
+            border: none;
+            background-color: #c47a45;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .card button:hover {
+            background-color: #a96032;
+        }
+
+        .order {
+            background-color: white;
+            width: 500px;
+            max-width: 90%;
+            margin: 20px auto 60px;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .order h2 {
+            margin-top: 0;
+        }
+
+        #orderText {
+            font-size: 18px;
+        }
+
+        #total {
+            font-size: 24px;
+            font-weight: bold;
+            color: #c47a45;
+        }
+
+        #removeButton {
+            display: none;
+            border: none;
+            background-color: #ddd;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        footer {
+            background-color: #5c3d2e;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Cafea Bună ☕</h1>
+
+        <nav>
+            <a href="#">Acasă</a>
+            <a href="#meniu">Meniu</a>
+            <a href="#comanda">Comanda</a>
+        </nav>
+    </header>
+
+
+    <section class="hero">
+        <h2>Cafeaua ta preferată</h2>
+        <p>Un loc simplu, o cafea bună și o atmosferă plăcută.</p>
+    </section>
+
+
+    <section class="products" id="meniu">
+
+        <div class="card">
+            <div style="font-size: 45px;">☕</div>
+
+            <h3>Espresso</h3>
+
+            <p>Cafea intensă și aromată.</p>
+
+            <p class="price">25 lei</p>
+
+            <button onclick="chooseCoffee('Espresso', 25)">
+                Alege
+            </button>
+        </div>
+
+
+        <div class="card">
+            <div style="font-size: 45px;">🥛</div>
+
+            <h3>Cappuccino</h3>
+
+            <p>Cafea cu lapte și spumă.</p>
+
+            <p class="price">35 lei</p>
+
+            <button onclick="chooseCoffee('Cappuccino', 35)">
+                Alege
+            </button>
+        </div>
+
+
+        <div class="card">
+            <div style="font-size: 45px;">🍫</div>
+
+            <h3>Mocha</h3>
+
+            <p>Cafea, lapte și ciocolată.</p>
+
+            <p class="price">40 lei</p>
+
+            <button onclick="chooseCoffee('Mocha', 40)">
+                Alege
+            </button>
+        </div>
+
+    </section>
+
+
+    <section class="order" id="comanda">
+
+        <h2>Comanda ta</h2>
+
+        <p id="orderText">
+            Nu ai ales încă o cafea.
+        </p>
+
+        <p id="total">Total: 0 lei</p>
+
+        <button id="removeButton" onclick="removeCoffee()">
+            Șterge alegerea
+        </button>
+
+    </section>
+
+
+    <footer>
+        <p>© 2026 Cafea Bună</p>
+    </footer>
+
+
+    <script>
+
+        let selectedCoffee = "";
+        let selectedPrice = 0;
+
+
+        function chooseCoffee(name, price) {
+
+            selectedCoffee = name;
+            selectedPrice = price;
+
+            const orderText = document.getElementById("orderText");
+            const total = document.getElementById("total");
+            const removeButton = document.getElementById("removeButton");
+
+            orderText.textContent = "Ai ales: " + selectedCoffee;
+            total.textContent = "Total: " + selectedPrice + " lei";
+
+            removeButton.style.display = "inline-block";
+
+            document.getElementById("comanda").scrollIntoView({
+                behavior: "smooth"
+            });
+        }
+
+
+        function removeCoffee() {
+
+            selectedCoffee = "";
+            selectedPrice = 0;
+
+            document.getElementById("orderText").textContent =
+                "Nu ai ales încă o cafea.";
+
+            document.getElementById("total").textContent =
+                "Total: 0 lei";
+
+            document.getElementById("removeButton").style.display =
+                "none";
+        }
+
+    </script>
+
+</body>
+</html>
